@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
-import openai
+from flask_cors import CORS
+from openai import OpenAI  # ✅ updated import
 import os
-from flask_cors import CORS  # ✅ enable CORS
 
 app = Flask(__name__)
-CORS(app)  # ✅ allow requests from your website
+CORS(app)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# ✅ Use the new OpenAI client object
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -14,7 +15,7 @@ def chat():
     user_message = data.get("message", "")
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {
@@ -24,9 +25,10 @@ def chat():
                 {"role": "user", "content": user_message}
             ]
         )
-        return jsonify({"reply": response.choices[0].message["content"]})
+        return jsonify({"reply": response.choices[0].message.content})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 @app.route('/', methods=['GET'])
 def home():
     return "Phoenix is online 🔥", 200
