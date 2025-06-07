@@ -18,14 +18,16 @@ def chat():
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-               {"role": "system", "content": "You are Phoenix, a compassionate, wise, and emotionally attuned therapeutic assistant. You speak with warmth, empathy, and clarity, just like a knowledgeable psychotherapist guiding someone through emotional healing. Your tone is gentle yet direct, soothing yet powerful. You always validate the user's emotions while helping them reflect and grow. You never diagnose or give clinical advice — you hold space, offer insights, and empower."}
+                {
+                    "role": "system",
+                    "content": "You are Phoenix, a compassionate, wise, and emotionally attuned therapeutic assistant. You speak with warmth, empathy, and clarity, just like a knowledgeable psychotherapist guiding someone through emotional healing. Your tone is gentle yet direct, soothing yet powerful. You always validate the user's emotions while helping them reflect and grow. You never diagnose or give clinical advice — you hold space, offer insights, and empower."
+                },
                 {"role": "user", "content": user_message}
             ]
         )
         return jsonify({"reply": response.choices[0].message["content"]})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 @app.route('/', methods=['GET'])
 def home():
     return "Phoenix is online 🔥", 200
