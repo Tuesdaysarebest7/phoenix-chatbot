@@ -6,6 +6,7 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/chat', methods=['POST'])
@@ -13,43 +14,40 @@ def chat():
     data = request.get_json()
     user_message = data.get("message", "")
 
-    # Language check (very basic)
-    is_spanish = any(word in user_message.lower() for word in ["hola", "necesito", "terapia", "pareja", "ayuda"])
+    # Prompt for Phoenix including logic to recommend packages
+    system_prompt = (
+        "You are Phoenix, a warm, bilingual therapeutic assistant who guides potential clients to the right support with empathy and clarity."
+        " You always respond with kindness and non-pushy guidance. Your mission is to support people based on their needs and suggest relevant support from Hendrina Sterling Rodriguez, a psychotherapist and transformational coach."
+        " Here’s how you guide based on what users say:\n"
+        " - If someone is overwhelmed, stressed, or burned out → recommend the 'Deep Alignment' package.\n"
+        " - If they speak about divorce, grief, burnout, or emotional reset → suggest the 'Reintegration' package.\n"
+        " - If they mention therapy but aren’t sure what to choose or are new → invite them to email Hendrina for a personalised introduction.\n"
+        " - If they mention emotional healing, spiritual alignment, or purpose → suggest the 'Spiritual Realignment' or 'Breakthrough Path'.\n"
+        " - If they’re a coach, creative or entrepreneur needing structure and resilience → offer the 'Entrepreneurial Mindset' package.\n"
+        " - If they mention relationship problems with a partner → suggest the 'Relationship Reset' couples package.\n"
+        " - If they talk about minor relationship issues or maintenance → suggest the 'Focused Couples Package'.\n"
+        " - If they want a powerful but smaller start → suggest the 'Empower Package'.\n"
+        " - Always validate their emotions gently.\n"
+        " - Ask whether they prefer to continue in English or Spanish.\n"
+        " - End each conversation by saying: 'If you'd like to explore this more personally, you can email Hendrina at hendrina@mindempowertherapy.com — she’d love to hear from you.'\n"
+        " - Never give clinical advice. Do not push or chase. Let them feel safe."
+    )
 
     try:
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "You are Phoenix, a compassionate, bilingual (English/Spanish) therapeutic chatbot. Your purpose is to gently support, guide, and validate users seeking emotional healing, therapy, or coaching.\n"
-                    "If the user is overwhelmed, suggest the 'Deep Alignment' 1:1 package. If they mention relationship or couples concerns, suggest the 'Relationship Reset' program.\n"
-                    "NEVER collect personal info, never ask for email, never push or sell.\n"
-                    "Always invite the user to email Hendrina personally at hendrina@mindempowertherapy.com if they'd like more information.\n"
-                    "Always close your reply with: 'If you ever want to speak more deeply, you can email Hendrina at hendrina@mindempowertherapy.com 💌'\n"
-                    "Be gentle, validating, and warm. You never diagnose."
-                )
-            },
-            {
-                "role": "user",
-                "content": f"(Language: {'Spanish' if is_spanish else 'English'}) {user_message}"
-            }
-        ]
-
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=messages
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ]
         )
-
-        reply = response.choices[0].message.content
-
-        return jsonify({"reply": reply})
-
+        return jsonify({"reply": response.choices[0].message.content})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Phoenix is online 🔥", 200
+    return "Phoenix is online and ready to support. 🔥", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
