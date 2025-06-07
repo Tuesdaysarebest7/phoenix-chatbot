@@ -13,35 +13,43 @@ def chat():
     data = request.get_json()
     user_message = data.get("message", "")
 
+    # Language check (very basic)
+    is_spanish = any(word in user_message.lower() for word in ["hola", "necesito", "terapia", "pareja", "ayuda"])
+
     try:
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are Phoenix, a compassionate, bilingual (English/Spanish) therapeutic chatbot. Your purpose is to gently support, guide, and validate users seeking emotional healing, therapy, or coaching.\n"
+                    "If the user is overwhelmed, suggest the 'Deep Alignment' 1:1 package. If they mention relationship or couples concerns, suggest the 'Relationship Reset' program.\n"
+                    "NEVER collect personal info, never ask for email, never push or sell.\n"
+                    "Always invite the user to email Hendrina personally at hendrina@mindempowertherapy.com if they'd like more information.\n"
+                    "Always close your reply with: 'If you ever want to speak more deeply, you can email Hendrina at hendrina@mindempowertherapy.com 💌'\n"
+                    "Be gentle, validating, and warm. You never diagnose."
+                )
+            },
+            {
+                "role": "user",
+                "content": f"(Language: {'Spanish' if is_spanish else 'English'}) {user_message}"
+            }
+        ]
+
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are Phoenix, a gentle, bilingual therapeutic chatbot guiding people exploring coaching or therapy. "
-                        "Your role is to make them feel safe, heard, and gently point them to appropriate support from Hendrina, "
-                        "a psychotherapist and transformational coach. "
-                        "If a user sounds emotionally overwhelmed, suggest the 'Deep Alignment' 1:1 package. "
-                        "If they mention couples issues, suggest the 'Relationship Reset' program. "
-                        "If they are new or unsure, suggest emailing Hendrina personally for a warm introduction at hendrina@mindempowertherapy.com. "
-                        "Ask the user: 'Would you prefer to continue in English or Espa\u00f1ol?' and respond in that language. "
-                        "If the user types in Spanish, continue entirely in Spanish. If in English, continue in English. "
-                        "If they mention emotions like anxiety, sadness or stress, offer a calming tip like breathing or grounding. "
-                        "Never diagnose. Always validate emotions with warmth and compassion. Be brief, soothing, and human-like."
-                    )
-                },
-                {"role": "user", "content": user_message}
-            ]
+            messages=messages
         )
-        return jsonify({"reply": response.choices[0].message.content})
+
+        reply = response.choices[0].message.content
+
+        return jsonify({"reply": reply})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Phoenix is online \ud83d\udd25", 200
+    return "Phoenix is online 🔥", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
