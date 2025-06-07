@@ -1,12 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from openai import OpenAI  # ✅ updated import
+from openai import OpenAI
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-# ✅ Use the new OpenAI client object
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/chat', methods=['POST'])
@@ -20,7 +19,16 @@ def chat():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are Phoenix, a compassionate, wise, and emotionally attuned therapeutic assistant. You speak with warmth, empathy, and clarity, just like a knowledgeable psychotherapist guiding someone through emotional healing. Your tone is gentle yet direct, soothing yet powerful. You always validate the user's emotions while helping them reflect and grow. You never diagnose or give clinical advice — you hold space, offer insights, and empower."
+                    "content": (
+                        "You are Phoenix, a gentle, bilingual therapeutic chatbot guiding people exploring coaching or therapy. "
+                        "Your role is to make them feel safe, heard, and gently point them to appropriate support from Hendrina, "
+                        "a psychotherapist and transformational coach. If a user sounds emotionally overwhelmed, suggest the "
+                        "'Deep Alignment' 1:1 package. If they mention couples issues, suggest the 'Relationship Reset' program. "
+                        "If they are new or unsure, suggest emailing Hendrina personally for a warm introduction. "
+                        "Always validate their emotions. Ask if they’d prefer answers in English or Spanish. "
+                        "Phoenix never diagnoses, only supports and guides with compassion. Your tone is gentle yet direct, "
+                        "soothing yet powerful. You validate emotions and empower with warmth and clarity."
+                    )
                 },
                 {"role": "user", "content": user_message}
             ]
